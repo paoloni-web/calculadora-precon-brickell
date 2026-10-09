@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Calculadora de inversión para unidades de One Twenty Brickell · Signature: NOI, cap rate, cash flow, cash-on-cash y DSCR en tres escenarios.">
+<meta name="theme-color" content="#F3F5F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C1211" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23068D74'/%3E%3Cpath d='M8 23V14M14 23V9M20 23v-6M26 23V12' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<title>Calculadora Precon Brickell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --surface-2:#FAFBFA;
+  --ink:#111D1A; --ink-2:#384742; --muted:#5C6B66;
+  --line:#DBE2DF; --line-strong:#C3CECA;
+  --accent:#068D74; --accent-soft:#E4F1ED; --accent-ink:#04604F;
+  --neg:#C0532A; --neg-soft:#FAEBE3;
+  --field:#FFFFFF; --field-line:#CCD6D2;
+  /* rampa ordinal pesimista → base → optimista (validada, modo claro) */
+  --s1:#5AB6A1; --s2:#0B8E76; --s3:#045346;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0C1211; --surface:#141C1A; --surface-2:#18211F;
+    --ink:#E7EDEA; --ink-2:#BCC9C4; --muted:#93A39D;
+    --line:#243330; --line-strong:#33443F;
+    --accent:#30A892; --accent-soft:#12302A; --accent-ink:#5FCBB5;
+    --neg:#CE6C48; --neg-soft:#331C13;
+    --field:#101917; --field-line:#2E403C;
+    --s1:#1C7A67; --s2:#2FA48C; --s3:#5FCBB5;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0C1211; --surface:#141C1A; --surface-2:#18211F;
+  --ink:#E7EDEA; --ink-2:#BCC9C4; --muted:#93A39D;
+  --line:#243330; --line-strong:#33443F;
+  --accent:#30A892; --accent-soft:#12302A; --accent-ink:#5FCBB5;
+  --neg:#CE6C48; --neg-soft:#331C13;
+  --field:#101917; --field-line:#2E403C;
+  --s1:#1C7A67; --s2:#2FA48C; --s3:#5FCBB5;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5; margin:0;
+  padding-left:16px; padding-right:16px;
+  -webkit-font-smoothing:antialiased;
+}
+.num,.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:"Archivo",system-ui,sans-serif; margin:0; text-wrap:balance}
+
+.wrap{max-width:1220px; margin:0 auto; padding-block:22px 0}
+header.top{
+  display:flex; flex-wrap:wrap; gap:14px 20px; align-items:flex-end;
+  justify-content:space-between; padding-bottom:16px; border-bottom:1px solid var(--line);
+}
+.brandline{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent-ink); margin-bottom:6px}
+h1{font-size:clamp(22px,4.4vw,30px); font-weight:700; letter-spacing:-.02em}
+.sub{color:var(--muted); font-size:13.5px; margin-top:5px; max-width:56ch}
+.presets{display:flex; flex-wrap:wrap; gap:7px; align-items:center}
+.presets .plabel{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); width:100%}
+.chip{
+  font:500 12.5px/1 "IBM Plex Sans",sans-serif; color:var(--ink-2);
+  background:var(--surface); border:1px solid var(--field-line); border-radius:999px;
+  padding:8px 13px; cursor:pointer; transition:.15s;
+}
+.chip:hover{border-color:var(--accent); color:var(--accent-ink)}
+.chip[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); font-weight:600}
+
+.chip:focus-visible,.chipx:focus-visible,.cmpbtn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.presets{max-width:620px}
+.chiprow{display:flex; flex-wrap:wrap; gap:7px; width:100%}
+.chipwrap{display:inline-flex; align-items:stretch}
+.chipwrap .chip{border-radius:999px 0 0 999px; padding-right:9px}
+.chipx{
+  font:500 14px/1 "IBM Plex Sans",sans-serif; color:var(--muted); background:var(--surface);
+  border:1px solid var(--field-line); border-left:none; border-radius:0 999px 999px 0;
+  padding:0 10px 1px 7px; cursor:pointer; transition:.15s;
+}
+.chipx:hover{color:var(--neg); border-color:var(--neg)}
+.saverow{display:flex; gap:7px; width:100%; margin-top:4px}
+.saverow input{flex:1; min-width:0; padding:7px 11px; font-size:13px}
+.saverow button.act{padding:8px 13px; white-space:nowrap}
+.savemsg{font-size:11.5px; color:var(--muted); width:100%; min-height:17px}
+
+table.cmp{width:100%; border-collapse:collapse; font-size:12.5px; min-width:800px}
+table.cmp th,table.cmp td{padding:9px 12px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap}
+table.cmp th{font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600; background:var(--surface-2)}
+table.cmp th:first-child,table.cmp td:first-child{text-align:left; padding-left:16px}
+table.cmp td:not(:first-child){font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+table.cmp tr.on td{background:var(--accent-soft)}
+table.cmp td.neg{color:var(--neg)}
+.cmpbtn{font:600 12.5px/1.3 "IBM Plex Sans",sans-serif; color:var(--accent-ink); background:none; border:none;
+  padding:0; cursor:pointer; text-decoration:underline; text-underline-offset:3px; text-align:left}
+
+.layout{display:grid; grid-template-columns:minmax(0,1fr) 392px; gap:26px; align-items:start; padding-block:22px 40px}
+@media (max-width:980px){ .layout{grid-template-columns:minmax(0,1fr); gap:20px} }
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:16px; overflow:hidden}
+.panel > h2{
+  font-size:12px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--muted); padding:13px 16px; border-bottom:1px solid var(--line); background:var(--surface-2);
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+}
+.panel > h2 .hint{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:0;
+  text-transform:none; color:var(--muted); font-weight:400}
+.fields{padding:14px 16px 16px; display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:13px 14px}
+.f{display:flex; flex-direction:column; gap:5px; min-width:0}
+.f label{font-size:12.5px; color:var(--ink-2); font-weight:500; line-height:1.3}
+.f .help{font-size:11px; color:var(--muted); line-height:1.35}
+.inputwrap{position:relative; display:flex; align-items:center}
+.inputwrap .affix{position:absolute; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--muted); pointer-events:none}
+.inputwrap .affix.pre{left:11px}
+.inputwrap .affix.post{right:11px}
+input[type="number"],input[type="text"]{
+  width:100%; background:var(--field); color:var(--ink);
+  border:1px solid var(--field-line); border-radius:8px; padding:9px 11px;
+  font-family:"IBM Plex Mono",monospace; font-size:14px; font-variant-numeric:tabular-nums;
+  transition:border-color .15s, box-shadow .15s;
+}
+input.has-pre{padding-left:24px}
+input.has-post{padding-right:32px}
+input[type="text"]{font-family:"IBM Plex Sans",sans-serif}
+input:focus-visible{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+input[type=number]{-moz-appearance:textfield}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+
+/* resumen al pie de cada bloque de entradas */
+.derived{
+  margin:0 16px 15px; padding:11px 13px; background:var(--accent-soft); border-radius:8px;
+  display:flex; flex-direction:column; gap:7px;
+}
+.dpair{display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between; align-items:baseline}
+.dpair span{font-size:12px; color:var(--accent-ink); font-weight:500}
+.dpair b{font-family:"IBM Plex Mono",monospace; font-size:14px; color:var(--accent-ink); font-weight:600}
+.dpair.lead b{font-size:15.5px}
+
+.scen-grid{padding:14px 16px 16px; display:flex; flex-direction:column; gap:9px}
+.scen-row{display:grid; grid-template-columns:minmax(0,1fr) 104px; gap:9px; align-items:center}
+
+.kpis{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 16px 16px}
+.kpi{background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:11px 12px}
+.kpi.wide{grid-column:1 / -1}
+.kpi .k{font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.kpi .v{font-family:"IBM Plex Mono",monospace; font-size:21px; font-weight:600; letter-spacing:-.02em; margin-top:3px; line-height:1.15}
+.kpi .m{font-size:11.5px; color:var(--muted); margin-top:2px; font-family:"IBM Plex Mono",monospace}
+.v.pos{color:var(--accent-ink)} .v.neg{color:var(--neg)}
+
+.pill{display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:3px 9px 3px 7px;
+  font-size:11.5px; font-weight:600; margin-top:6px}
+.pill.ok{background:var(--accent-soft); color:var(--accent-ink)}
+.pill.bad{background:var(--neg-soft); color:var(--neg)}
+.pill svg{flex:none}
+
+table.br{width:100%; border-collapse:collapse; font-size:13px}
+table.br td,table.br th{padding:7px 16px; border-bottom:1px solid var(--line)}
+table.br tr:last-child td{border-bottom:none}
+table.br td.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+table.br tr.sum td{font-weight:600; background:var(--surface-2)}
+table.br tr.sub td{color:var(--muted)}
+table.br td.ind{padding-left:26px}
+
+.tscroll{overflow-x:auto}
+table.mx{width:100%; border-collapse:collapse; font-size:12.5px; table-layout:fixed; min-width:330px}
+table.mx th,table.mx td{padding:7px 9px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap}
+table.mx th{font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600;
+  background:var(--surface-2)}
+table.mx th:first-child,table.mx td:first-child{text-align:left; width:31%; white-space:normal}
+table.mx td:not(:first-child){font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+table.mx tr:last-child td{border-bottom:none}
+table.mx tr.hi td{background:var(--surface-2); font-weight:600}
+.dot{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:6px; vertical-align:baseline}
+
+.chart{padding:14px 16px 6px}
+.mgroup{margin-bottom:15px}
+.mgroup:last-child{margin-bottom:4px}
+.mtitle{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:7px}
+.crow{display:grid; grid-template-columns:minmax(74px,30%) minmax(0,1fr) 66px; gap:10px; align-items:center; margin-bottom:8px}
+.crow:last-child{margin-bottom:0}
+.crow .cname{font-size:12.5px; color:var(--ink-2); line-height:1.25}
+.crow .cname i{display:block; font-style:normal; font-size:11px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.track{position:relative; height:22px}
+.zero{position:absolute; top:-2px; bottom:-2px; width:1px; background:var(--line-strong)}
+.bar{position:absolute; top:3px; bottom:3px; min-width:2px}
+.bar.p{border-radius:0 4px 4px 0}
+.bar.n{border-radius:4px 0 0 4px}
+.crow .cval{font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:600; text-align:right; font-variant-numeric:tabular-nums}
+.crow.two{grid-template-columns:minmax(70px,25%) minmax(0,1fr) 72px 46px}
+.crow.two .cval.money{font-weight:500; color:var(--ink-2)}
+.axisnote{font-size:11px; color:var(--muted); padding:4px 16px 14px; border-top:1px solid var(--line); margin-top:8px; line-height:1.5}
+
+
+.actions{display:flex; gap:9px; flex-wrap:wrap; padding:0 16px 16px}
+button.act{
+  font:600 12.5px/1 "IBM Plex Sans",sans-serif; color:var(--ink-2); background:var(--surface-2);
+  border:1px solid var(--field-line); border-radius:8px; padding:10px 13px; cursor:pointer; transition:.15s;
+}
+button.act:hover{border-color:var(--accent); color:var(--accent-ink)}
+button.act:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* ---- tres escenarios: una tarjeta por escenario, barras verticales ---- */
+.band{max-width:1220px; margin:0 auto}
+.scards{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; padding:16px}
+@media (max-width:820px){ .scards{grid-template-columns:minmax(0,1fr)} }
+.scard{border:1px solid var(--line); border-radius:10px; padding:14px 14px 16px; background:var(--surface-2)}
+.scard.is-base{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+.sc-t{font:600 13.5px/1.2 "Archivo",system-ui,sans-serif; color:var(--ink)}
+.sc-d{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); margin-top:3px}
+.sc-gross{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted); margin-top:9px;
+  padding-top:9px; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:8px}
+.vgrid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-top:14px}
+.vslot{display:flex; flex-direction:column; align-items:center; min-width:0}
+.vval{font:600 11.5px/1.2 "IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  margin-bottom:6px; text-align:center; white-space:nowrap; color:var(--ink)}
+.vpos{height:84px; width:100%; display:flex; align-items:flex-end; justify-content:center}
+.vline{height:1px; width:100%; background:var(--line-strong)}
+.vnegarea{width:100%; display:flex; align-items:flex-start; justify-content:center}
+.vbar{width:66%; max-width:32px; min-height:2px}
+.vbar.up{border-radius:3px 3px 0 0}
+.vbar.dn{border-radius:0 0 3px 3px; background:var(--neg)}
+.vlabel{font-size:10.5px; color:var(--muted); margin-top:8px; text-align:center; line-height:1.25; word-break:break-word}
+.sc-f{margin-top:13px; padding-top:10px; border-top:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap}
+.sc-dscr{font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600; color:var(--ink)}
+.sc-dscr small{font-family:"IBM Plex Sans",sans-serif; font-weight:600; font-size:10px;
+  letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-right:5px}
+.sc-f .pill{margin-top:0}
+
+.footnote{color:var(--muted); font-size:12px; line-height:1.6; padding:0 2px 30px; max-width:78ch}
+.footnote b{color:var(--ink-2); font-weight:600}
+
+.mbar{display:none}
+@media (max-width:980px){
+  .mbar{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    background:var(--line); border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+  }
+  .mbar > div{background:var(--surface); padding:8px 10px}
+  .mbar .k{font-size:9.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:600}
+  .mbar .v{font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; margin-top:1px}
+  .footnote{padding-bottom:104px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brandline">One Twenty Brickell · Signature</div>
+      <h1>Calculadora de inversión</h1>
+      <p class="sub">Cambiá cualquier campo y los números se recalculan solos. Pensada para correr una unidad en vivo durante la llamada.</p>
+    </div>
+    <div class="presets">
+      <span class="plabel">Cargar unidad</span>
+      <div class="chiprow" id="chips"></div>
+      <div class="saverow">
+        <label class="sr" for="saveName">Nombre para guardar la unidad cargada</label>
+        <input type="text" id="saveName" placeholder="Guardar lo cargado como… ej. 4112 · 1 dorm" maxlength="40" autocomplete="off">
+        <button class="act" type="button" id="btnSave">Guardar unidad</button>
+      </div>
+      <div class="savemsg" id="saveMsg" role="status"></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ============ ENTRADAS ============ -->
+    <div>
+      <section class="panel">
+        <h2>Unidad</h2>
+        <div class="fields">
+          <div class="f"><label for="precio">Precio de compra</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre" type="number" id="precio" step="1000"></div></div>
+          <div class="f"><label for="sqftRes">Superficie residencia</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="sqftRes" step="1"><span class="affix post">ft²</span></div></div>
+          <div class="f"><label for="sqftOfi">Superficie oficina</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="sqftOfi" step="1"><span class="affix post">ft²</span></div>
+            <span class="help">Poné 0 si la unidad no lleva oficina titulada.</span></div>
+        </div>
+        <div class="derived">
+          <div class="dpair"><span>Precio por pie² de residencia</span><b id="dPpsf">—</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Ingresos</h2>
+        <div class="fields">
+          <div class="f"><label for="strBase">Renta STR base anual</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre" type="number" id="strBase" step="1000"></div>
+            <span class="help">Tier AirDNA de la tipología.</span></div>
+          <div class="f"><label for="uplift">Uplift producto nuevo</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="uplift" step="1"><span class="affix post">%</span></div>
+            <span class="help">Amueblado, estreno, revenue management.</span></div>
+          <div class="f"><label for="prima">Prima piso alto / vistas</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="prima" step="1"><span class="affix post">%</span></div></div>
+          <div class="f"><label for="rentaOfi">Renta de la oficina</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre has-post" type="number" id="rentaOfi" step="50"><span class="affix post">/mes</span></div></div>
+        </div>
+        <div class="derived">
+          <div class="dpair"><span>Renta STR con uplift y prima</span><b id="dStr">—</b></div>
+          <div class="dpair"><span>Renta de la oficina al año</span><b id="dOfi">—</b></div>
+          <div class="dpair lead"><span>Ingreso bruto anual</span><b id="dBruto">—</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Escenarios de ingresos <span class="hint">se aplican a STR + oficina</span></h2>
+        <div class="fields">
+          <div class="f"><label for="scPes">Pesimista — ingresos por debajo</label>
+            <div class="inputwrap"><span class="affix pre">−</span><input class="has-pre has-post" type="number" id="scPes" step="1"><span class="affix post">%</span></div></div>
+          <div class="f"><label for="scOpt">Optimista — ingresos por encima</label>
+            <div class="inputwrap"><span class="affix pre">+</span><input class="has-pre has-post" type="number" id="scOpt" step="1"><span class="affix post">%</span></div></div>
+        </div>
+        <div class="derived">
+          <div class="dpair"><span><span class="dot" style="background:var(--s1)"></span>Pesimista</span><b id="dIngPes">—</b></div>
+          <div class="dpair"><span><span class="dot" style="background:var(--s2)"></span>Base — los datos de arriba</span><b id="dIngBase">—</b></div>
+          <div class="dpair"><span><span class="dot" style="background:var(--s3)"></span>Optimista</span><b id="dIngOpt">—</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Gastos operativos</h2>
+        <div class="fields">
+          <div class="f"><label for="hoaRes">HOA residencia</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre has-post" type="number" id="hoaRes" step="0.05"><span class="affix post">ft²/m</span></div></div>
+          <div class="f"><label for="hoaOfi">HOA oficina</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre has-post" type="number" id="hoaOfi" step="0.05"><span class="affix post">ft²/m</span></div></div>
+          <div class="f"><label for="tax">Property tax anual</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre has-post" type="number" id="tax" step="100"><span class="affix post">/año</span></div>
+            <span class="help" id="taxHelp">—</span></div>
+          <div class="f"><label for="seguro">Seguro anual</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre has-post" type="number" id="seguro" step="100"><span class="affix post">/año</span></div></div>
+          <div class="f"><label for="mgmt">Management del programa</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="mgmt" step="1"><span class="affix post">%</span></div>
+            <span class="help">Sobre el ingreso STR, no sobre la oficina.</span></div>
+          <div class="f"><label for="utils">Utilities y varios</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre has-post" type="number" id="utils" step="100"><span class="affix post">/año</span></div></div>
+          <div class="f"><label for="otros">Otros gastos</label>
+            <div class="inputwrap"><span class="affix pre">$</span><input class="has-pre has-post" type="number" id="otros" step="100"><span class="affix post">/año</span></div>
+            <span class="help">Línea libre: reservas, CAPEX, lo que quieras sumar.</span></div>
+        </div>
+        <div class="derived">
+          <div class="dpair"><span>Gastos fijos (corren aunque no se alquile)</span><b id="dFijos">—</b></div>
+          <div class="dpair lead"><span>Total gastos operativos</span><b id="dGastos">—</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Financiación</h2>
+        <div class="fields">
+          <div class="f"><label for="entrada">Entrada / depósito</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="entrada" step="1"><span class="affix post">%</span></div>
+            <span class="help">Se hipoteca el resto.</span></div>
+          <div class="f"><label for="interes">Interés DSCR anual</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="interes" step="0.05"><span class="affix post">%</span></div></div>
+          <div class="f"><label for="plazo">Plazo de amortización</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="plazo" step="1"><span class="affix post">años</span></div></div>
+          <div class="f"><label for="cierre">Costes de cierre</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="cierre" step="0.25"><span class="affix post">%</span></div></div>
+          <div class="f"><label for="credito">Crédito del desarrollador</label>
+            <div class="inputwrap"><input class="has-post" type="number" id="credito" step="0.25"><span class="affix post">%</span></div>
+            <span class="help">Se descuenta del efectivo, no del precio.</span></div>
+        </div>
+        <div class="derived">
+          <div class="dpair"><span>Entrada</span><b id="dEntrada">—</b></div>
+          <div class="dpair"><span>Hipoteca a la entrega</span><b id="dHipoteca">—</b></div>
+          <div class="dpair lead"><span>Cuota mensual</span><b id="dCuota">—</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Escenarios de apreciación <span class="hint">a la entrega</span></h2>
+        <div class="scen-grid" id="scenGrid"></div>
+      </section>
+    </div>
+
+    <!-- ============ RESULTADOS ============ -->
+    <div>
+      <section class="panel">
+        <h2>Resultado de operación <span class="hint">caso base</span></h2>
+        <div class="kpis">
+          <div class="kpi"><div class="k">NOI</div><div class="v" id="kNoi">—</div><div class="m" id="kNoiM">—</div></div>
+          <div class="kpi"><div class="k">Cap rate</div><div class="v" id="kCap">—</div><div class="m">NOI ÷ precio</div></div>
+          <div class="kpi"><div class="k">Cash flow</div><div class="v" id="kCf">—</div><div class="m" id="kCfM">—</div></div>
+          <div class="kpi"><div class="k">Cash-on-cash</div><div class="v" id="kCoc">—</div><div class="m" id="kCocM">—</div></div>
+          <div class="kpi wide"><div class="k">DSCR</div><div class="v" id="kDscr">—</div><div id="kDscrPill"></div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Desglose anual <span class="hint">caso base</span></h2>
+        <table class="br">
+          <tbody>
+            <tr><td>Renta STR de la residencia</td><td class="n" id="rStr">—</td></tr>
+            <tr><td>Renta de la oficina</td><td class="n" id="rOfi">—</td></tr>
+            <tr class="sum"><td>Ingreso bruto</td><td class="n" id="rBruto">—</td></tr>
+            <tr class="sub"><td class="ind">HOA residencia</td><td class="n" id="rHoaR">—</td></tr>
+            <tr class="sub"><td class="ind">HOA oficina</td><td class="n" id="rHoaO">—</td></tr>
+            <tr class="sub"><td class="ind">Property tax</td><td class="n" id="rTax">—</td></tr>
+            <tr class="sub"><td class="ind">Seguro</td><td class="n" id="rSeg">—</td></tr>
+            <tr class="sub"><td class="ind">Management</td><td class="n" id="rMgmt">—</td></tr>
+            <tr class="sub"><td class="ind">Utilities y varios</td><td class="n" id="rUtil">—</td></tr>
+            <tr class="sub"><td class="ind">Otros</td><td class="n" id="rOtros">—</td></tr>
+            <tr class="sum"><td>Gastos operativos</td><td class="n" id="rGastos">—</td></tr>
+            <tr class="sum"><td>NOI</td><td class="n" id="rNoi">—</td></tr>
+            <tr><td>Servicio de deuda</td><td class="n" id="rDeuda">—</td></tr>
+            <tr class="sum"><td>Cash flow anual</td><td class="n" id="rCf">—</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Capital y cuota</h2>
+        <table class="br">
+          <tbody>
+            <tr><td>Entrada</td><td class="n" id="cEntrada">—</td></tr>
+            <tr><td>Costes de cierre</td><td class="n" id="cCierre">—</td></tr>
+            <tr><td>Crédito del desarrollador</td><td class="n" id="cCredito">—</td></tr>
+            <tr class="sum"><td>Efectivo hasta la entrega</td><td class="n" id="cEfectivo">—</td></tr>
+            <tr class="sub"><td>Base del cash-on-cash <span style="font-size:11px">(entrada + cierre)</span></td><td class="n" id="cBase">—</td></tr>
+            <tr><td>Hipoteca</td><td class="n" id="cHip">—</td></tr>
+            <tr><td>Cuota mensual de hipoteca</td><td class="n" id="cCuota">—</td></tr>
+            <tr><td>Coste mensual si no se alquila</td><td class="n" id="cVacio">—</td></tr>
+            <tr><td>Coste mensual con solo la oficina</td><td class="n" id="cSoloOfi">—</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+
+      <section class="panel">
+        <h2>Apreciación <span class="hint">sobre la entrada</span></h2>
+        <div class="chart" id="chart"></div>
+        <div class="axisnote">Equity que ganás sobre tu entrada, sin contar ninguna venta. La apreciación corre sobre el precio completo, no sobre lo que pusiste: ahí está el apalancamiento. No cambia con los escenarios de ingresos.</div>
+        <div class="actions">
+          <button class="act" type="button" id="btnCopy">Copiar resumen</button>
+          <button class="act" type="button" id="btnLink">Copiar enlace</button>
+          <button class="act" type="button" id="btnReset">Restablecer</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel band">
+    <h2>Los tres escenarios de ingresos <span class="hint">la operación completa, movida por la renta</span></h2>
+    <div class="scards" id="scards"></div>
+    <div class="axisnote">Cada métrica tiene su propia escala, compartida por los tres escenarios: la altura se compara
+      de izquierda a derecha, entre tarjetas. Las barras que caen por debajo de la línea son valores negativos.</div>
+  </section>
+
+  <section class="panel band">
+    <h2>Comparar unidades <span class="hint">caso base de cada una</span></h2>
+    <div class="tscroll">
+      <table class="cmp">
+        <thead><tr><th>Unidad</th><th>Precio</th><th>$ / ft²</th><th>Ingreso bruto</th><th>NOI</th>
+          <th>Cap rate</th><th>Cash flow</th><th>Cash-on-cash</th><th>DSCR</th></tr></thead>
+        <tbody id="cmpBody"></tbody>
+      </table>
+    </div>
+    <div class="axisnote">Tocá una unidad para cargarla arriba. La tabla usa los datos tal como están guardados: lo que
+      edites en la calculadora no la cambia hasta que lo guardes. Las unidades que guardás vos quedan solo en este navegador.</div>
+  </section>
+
+  <p class="footnote">
+    <b>Cómo leer esto.</b> El <b>NOI</b> es el beneficio del inmueble antes de la hipoteca, y el <b>cap rate</b> lo expresa
+    sobre el precio. El <b>DSCR</b> es lo que mira el banco: NOI dividido por la cuota anual — por debajo de 1,00 la
+    propiedad no se paga sola y el préstamo no sale. El <b>cash-on-cash</b> se calcula sobre entrada más costes de cierre,
+    sin descontar el crédito del desarrollador, que es el criterio conservador. La <b>apreciación</b> se mide sobre la
+    entrada, no sobre el precio: ahí está el apalancamiento. Es equity, no efectivo en mano, y no descuenta
+    ninguna venta — el modelo asume que la unidad se mantiene, se refinancia o se sigue operando. Los escenarios mueven los dos ingresos (STR y oficina) y el
+    management, que es un porcentaje de la renta; los gastos fijos y la cuota no se mueven, que es justo lo que hace
+    caer el DSCR en el caso pesimista. Los impuestos de hospedaje y la limpieza se trasladan al huésped y no se
+    descuentan. Ninguna apreciación futura está garantizada.
+  </p>
+</div>
+
+<div class="mbar" aria-hidden="true">
+  <div><div class="k">NOI</div><div class="v" id="mNoi">—</div></div>
+  <div><div class="k">DSCR</div><div class="v" id="mDscr">—</div></div>
+  <div><div class="k">Cash flow</div><div class="v" id="mCf">—</div></div>
+</div>
+
+
+<script src="unidades.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // Las unidades fijas viven en unidades.js (window.UNIDADES); acá solo queda la plantilla en blanco.
+  var PRESETS = {
+    blank:{ precio:0, sqftRes:0, sqftOfi:0, strBase:0, uplift:0, prima:0, rentaOfi:0,
+            scPes:20, scOpt:20,
+            hoaRes:1.75, hoaOfi:1.50, tax:0, seguro:0, mgmt:15, utils:0, otros:0,
+            entrada:30, interes:7, plazo:30, cierre:2, credito:0 }
+  };
+  var LABELS = {};
+  (window.UNIDADES || []).forEach(function(u){
+    if (!u || u.id == null) return;
+    PRESETS["u"+u.id] = u; LABELS["u"+u.id] = u.nombre || String(u.id);
+  });
+  var FIRST = Object.keys(LABELS)[0] || "blank";
+  var DEFAULT_SCEN = [
+    {n:"Pesimista",           p:0},
+    {n:"Rango bajo",          p:12},
+    {n:"Rango alto",          p:18},
+    {n:"Estimación proyecto", p:20},
+    {n:"Branded 2-4 años",    p:35}
+  ];
+  var FIELDS = ["precio","sqftRes","sqftOfi","strBase","uplift","prima","rentaOfi","scPes","scOpt",
+                "hoaRes","hoaOfi","tax","seguro","mgmt","utils","otros",
+                "entrada","interes","plazo","cierre","credito"];
+
+  var nf0 = new Intl.NumberFormat("es-ES",{maximumFractionDigits:0, useGrouping:"always"});
+  var nf2 = new Intl.NumberFormat("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2, useGrouping:"always"});
+  function money(v){ if(!isFinite(v)) return "—"; return (v<0?"−$":"$") + nf0.format(Math.abs(Math.round(v))); }
+  function money2(v){ if(!isFinite(v)) return "—"; return (v<0?"−$":"$") + nf2.format(Math.abs(v)); }
+  function nf(v,d){ return new Intl.NumberFormat("es-ES",{minimumFractionDigits:d,maximumFractionDigits:d, useGrouping:"always"}).format(v); }
+  // el menos tipográfico (−) para que los % combinen con los importes
+  function minus(s){ return s.replace(/^-/, "−"); }
+  function pct(v,d){ if(!isFinite(v)) return "—"; return minus(nf(v*100, d==null?1:d)) + " %"; }
+  function ratio(v){ return isFinite(v) ? minus(nf(v,2)) : "—"; }
+  function num(id){ var el=document.getElementById(id); var v=parseFloat(el&&el.value); return isFinite(v)?v:0; }
+  function set(id,txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+  var scen = DEFAULT_SCEN.map(function(s){ return {n:s.n, p:s.p}; });
+
+  function buildScenRows(){
+    var g = document.getElementById("scenGrid");
+    g.innerHTML = "";
+    scen.forEach(function(s,i){
+      var row = document.createElement("div");
+      row.className = "scen-row";
+      row.innerHTML =
+        '<div class="f"><label class="sr" for="sn'+i+'">Nombre del escenario '+(i+1)+'</label>'+
+        '<input type="text" id="sn'+i+'" value="'+esc(s.n)+'"></div>'+
+        '<div class="f"><label class="sr" for="sp'+i+'">Apreciación escenario '+(i+1)+'</label>'+
+        '<div class="inputwrap"><input class="has-post" type="number" id="sp'+i+'" step="1" value="'+s.p+'"><span class="affix post">%</span></div></div>';
+      g.appendChild(row);
+      row.querySelector("#sn"+i).addEventListener("input", function(e){ scen[i].n = e.target.value; render(); });
+      row.querySelector("#sp"+i).addEventListener("input", function(e){
+        var v = parseFloat(e.target.value); scen[i].p = isFinite(v)?v:0; render();
+      });
+    });
+  }
+
+  // factor 1 = caso base; <1 pesimista; >1 optimista
+  // vals = objeto con los campos de una unidad; sin él, lee el formulario
+  function compute(factor, vals){
+    if (factor == null) factor = 1;
+    var g = vals ? function(id){ var v = parseFloat(vals[id]); return isFinite(v)?v:0; } : num;
+    var precio = g("precio"), sqftRes = g("sqftRes"), sqftOfi = g("sqftOfi");
+    var str = g("strBase") * (1 + g("uplift")/100) * (1 + g("prima")/100) * factor;
+    var rentaOfiMes = g("rentaOfi") * factor;
+    var ofi = rentaOfiMes * 12;
+    var bruto = str + ofi;
+
+    var hoaR = sqftRes * g("hoaRes") * 12;
+    var hoaO = sqftOfi * g("hoaOfi") * 12;
+    var tax  = g("tax");                       // dólares al año
+    var seg  = g("seguro");
+    var mgmt = str * g("mgmt")/100;            // % de la renta STR, escala con el escenario
+    var util = g("utils");
+    var otros= g("otros");
+    var gastos = hoaR + hoaO + tax + seg + mgmt + util + otros;
+    var noi = bruto - gastos;
+    var cap = precio > 0 ? noi/precio : NaN;
+
+    var entrada = precio * g("entrada")/100;
+    var hipoteca = precio - entrada;
+    var i = g("interes")/100/12, n = g("plazo")*12;
+    var cuotaMes;
+    if (hipoteca <= 0 || n <= 0) cuotaMes = 0;
+    else if (i === 0) cuotaMes = hipoteca / n;
+    else cuotaMes = hipoteca * i / (1 - Math.pow(1+i, -n));
+    var deuda = cuotaMes * 12;
+
+    var cf = noi - deuda;
+    var dscr = deuda > 0 ? noi/deuda : (noi > 0 ? Infinity : NaN);
+    var cierre = precio * g("cierre")/100;
+    var credito = precio * g("credito")/100;
+    var base = entrada + cierre;
+    var efectivo = base - credito;
+    var coc = base > 0 ? cf/base : NaN;
+
+    var fijos = hoaR + hoaO + tax + seg + util + otros;   // todo menos management
+    var vacio = (fijos + deuda)/12;
+    var soloOfi = vacio - rentaOfiMes;
+
+    return {precio:precio, sqftRes:sqftRes, str:str, ofi:ofi, bruto:bruto,
+            hoaR:hoaR, hoaO:hoaO, tax:tax, seg:seg, mgmt:mgmt, util:util, otros:otros,
+            fijos:fijos, gastos:gastos, noi:noi, cap:cap,
+            entrada:entrada, hipoteca:hipoteca, cuotaMes:cuotaMes, deuda:deuda,
+            cf:cf, dscr:dscr, cierre:cierre, credito:credito, base:base, efectivo:efectivo, coc:coc,
+            vacio:vacio, soloOfi:soloOfi};
+  }
+
+  function factors(){
+    return {pes: 1 - num("scPes")/100, base: 1, opt: 1 + num("scOpt")/100};
+  }
+
+  var CHECK = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4l2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var CROSS = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  var RAMP = ["var(--s1)","var(--s2)","var(--s3)"];
+
+  /* ---------- gráfico genérico de barras con línea de cero ---------- */
+  function barGroup(host, title, rows){
+    var g = document.createElement("div");
+    g.className = "mgroup";
+    g.innerHTML = '<div class="mtitle">'+esc(title)+'</div>';
+    var vals = rows.map(function(r){ return isFinite(r.v) ? r.v : 0; });
+    var max = Math.max.apply(null, vals.concat([0]));
+    var min = Math.min.apply(null, vals.concat([0]));
+    var span = (max - min) || 1;
+    var zero = ((0 - min)/span) * 100;
+
+    rows.forEach(function(r){
+      var v = isFinite(r.v) ? r.v : 0;
+      var w = Math.abs(v)/span * 100;
+      var bar = v >= 0
+        ? '<div class="bar p" style="left:'+zero+'%; width:'+w+'%; background:'+r.color+'"></div>'
+        : '<div class="bar n" style="right:'+(100-zero)+'%; width:'+w+'%; background:'+r.color+'"></div>';
+      var el = document.createElement("div");
+      el.className = "crow" + (r.label2 != null ? " two" : "");
+      var neg = v < 0 ? ' style="color:var(--neg)"' : '';
+      el.innerHTML =
+        '<div class="cname">'+esc(r.name)+(r.sub?'<i>'+esc(r.sub)+'</i>':'')+'</div>'+
+        '<div class="track"><div class="zero" style="left:'+zero+'%"></div>'+bar+'</div>'+
+        (r.label2 != null ? '<div class="cval money"'+neg+'>'+r.label2+'</div>' : '')+
+        '<div class="cval"'+neg+'>'+r.label+'</div>';
+      g.appendChild(el);
+    });
+    host.appendChild(g);
+  }
+
+  /* ---------- escenarios de ingresos ---------- */
+  /* ---------- los tres escenarios de ingresos ----------
+     Una tarjeta por escenario. Dentro, una barra vertical por métrica.
+     Cada métrica lleva su propia escala, compartida por las tres tarjetas,
+     así la altura se compara horizontalmente (no entre métricas: las
+     unidades son distintas y mezclarlas en un solo eje engañaría). */
+  var POS_H = 84, NEG_H = 26;
+
+  function renderScenarios(){
+    var f = factors();
+    var sets = [compute(f.pes), compute(f.base), compute(f.opt)];
+    var pesPct = nf(num("scPes"),0), optPct = nf(num("scOpt"),0);
+
+    set("dIngPes",  money(sets[0].bruto));
+    set("dIngBase", money(sets[1].bruto));
+    set("dIngOpt",  money(sets[2].bruto));
+
+    var METRICS = [
+      {k:"noi", name:"NOI",          fmt:money},
+      {k:"cap", name:"Cap rate",     fmt:function(v){ return pct(v); }},
+      {k:"cf",  name:"Cash flow",    fmt:money},
+      {k:"coc", name:"Cash-on-cash", fmt:function(v){ return pct(v); }}
+    ];
+
+    // escala por métrica, común a los tres escenarios
+    var scale = METRICS.map(function(m){
+      var vs = sets.map(function(s){ return isFinite(s[m.k]) ? s[m.k] : 0; });
+      var posMax = Math.max.apply(null, vs.concat([0]));
+      var negMax = -Math.min.apply(null, vs.concat([0]));
+      var unit = posMax > 0 ? POS_H/posMax : (negMax > 0 ? NEG_H/negMax : 0);
+      return {unit:unit, negMax:negMax};
+    });
+    var anyNeg = scale.some(function(x){ return x.negMax > 0; });
+    var negH = anyNeg ? NEG_H : 0;
+
+    var titles = ["Escenario pesimista","Escenario base","Escenario optimista"];
+    var subs   = ["−"+pesPct+" % de ingresos", "los datos que cargaste", "+"+optPct+" % de ingresos"];
+
+    var host = document.getElementById("scards");
+    host.innerHTML = "";
+
+    sets.forEach(function(sc, i){
+      var card = document.createElement("div");
+      card.className = "scard" + (i === 1 ? " is-base" : "");
+
+      var bars = METRICS.map(function(m, mi){
+        var v = isFinite(sc[m.k]) ? sc[m.k] : 0;
+        var u = scale[mi].unit;
+        var hUp = v > 0 ? Math.max(2, Math.min(POS_H, v*u)) : 0;
+        var hDn = v < 0 ? Math.max(2, Math.min(NEG_H, -v*u)) : 0;
+        return '<div class="vslot">'+
+                 '<div class="vval"'+(v<0?' style="color:var(--neg)"':'')+'>'+m.fmt(sc[m.k])+'</div>'+
+                 '<div class="vpos">'+(hUp?'<div class="vbar up" style="height:'+hUp+'px; background:'+RAMP[i]+'"></div>':'')+'</div>'+
+                 '<div class="vline"></div>'+
+                 '<div class="vnegarea" style="height:'+negH+'px">'+(hDn?'<div class="vbar dn" style="height:'+hDn+'px"></div>':'')+'</div>'+
+                 '<div class="vlabel">'+esc(m.name)+'</div>'+
+               '</div>';
+      }).join("");
+
+      var d = sc.dscr;
+      var pill = (!isFinite(d) && d !== Infinity) ? ""
+        : (d >= 1 ? '<span class="pill ok">'+CHECK+'Califica</span>'
+                  : '<span class="pill bad">'+CROSS+'No califica</span>');
+
+      card.innerHTML =
+        '<div class="sc-t">'+titles[i]+'</div>'+
+        '<div class="sc-d">'+subs[i]+'</div>'+
+        '<div class="sc-gross"><span>Ingreso bruto</span><span>'+money(sc.bruto)+'</span></div>'+
+        '<div class="vgrid">'+bars+'</div>'+
+        '<div class="sc-f">'+
+          '<span class="sc-dscr"'+((isFinite(d)&&d<1)?' style="color:var(--neg)"':'')+'>'+
+            '<small>DSCR</small>'+(d === Infinity ? "sin deuda" : ratio(d))+'</span>'+
+          pill+
+        '</div>';
+      host.appendChild(card);
+    });
+  }
+
+  /* ---------- apreciación ---------- */
+  /* Equity ganado sobre la entrada. NO descuenta costes de venta: el modelo asume
+     que la unidad se mantiene (se refinancia o se sigue operando), no que se vende. */
+  function renderAprec(r){
+    var host = document.getElementById("chart");
+    host.innerHTML = "";
+    var rows = scen.map(function(s){
+      var ganancia = r.precio * s.p/100;
+      var roi = r.entrada > 0 ? ganancia / r.entrada : NaN;
+      return {name:s.n, sub:nf(s.p,0)+" % aprec.", v:isFinite(roi)?roi:0,
+              label2: money(ganancia),
+              label: isFinite(roi)?pct(roi,0):"—",
+              color:(isFinite(roi)&&roi<0)?"var(--neg)":"var(--accent)"};
+    });
+    barGroup(host, "Equity ganado · sobre la entrada", rows);
+  }
+
+
+  function render(){
+    var r = compute(1);
+
+    set("dPpsf", r.sqftRes > 0 ? money2(r.precio/r.sqftRes) + " / ft²" : "—");
+    set("dStr", money(r.str));
+    set("dOfi", money(r.ofi));
+    set("dBruto", money(r.bruto));
+    set("dFijos", money(r.fijos));
+    set("dGastos", money(r.gastos));
+    set("dEntrada", money(r.entrada));
+    set("dHipoteca", money(r.hipoteca));
+    set("dCuota", money2(r.cuotaMes));
+    set("taxHelp", r.precio > 0
+      ? "Equivale al " + pct(r.tax/r.precio, 2) + " del precio. En Miami-Dade se observa entre 0,96 % y 1,86 %."
+      : "En Miami-Dade se observa entre 0,96 % y 1,86 % del precio.");
+
+    set("kNoi", money(r.noi));   set("kNoiM", money(r.noi/12) + " / mes");
+    set("kCap", pct(r.cap));
+    set("kCf", money(r.cf));     set("kCfM", money(r.cf/12) + " / mes");
+    set("kCoc", pct(r.coc));     set("kCocM", "sobre " + money(r.base));
+    set("kDscr", r.dscr === Infinity ? "sin deuda" : ratio(r.dscr));
+    document.getElementById("kCf").className  = "v " + (r.cf  < 0 ? "neg" : "pos");
+    document.getElementById("kCoc").className = "v " + (r.coc < 0 ? "neg" : "pos");
+
+    var pillHost = document.getElementById("kDscrPill");
+    if (!isFinite(r.dscr) && r.dscr !== Infinity) pillHost.innerHTML = "";
+    else if (r.dscr >= 1) pillHost.innerHTML = '<span class="pill ok">'+CHECK+'Califica para el préstamo</span>';
+    else pillHost.innerHTML = '<span class="pill bad">'+CROSS+'No califica · el banco exige 1,00</span>';
+
+    set("rStr", money(r.str));      set("rOfi", money(r.ofi));
+    set("rBruto", money(r.bruto));
+    set("rHoaR", money(-r.hoaR));   set("rHoaO", money(-r.hoaO));
+    set("rTax", money(-r.tax));     set("rSeg", money(-r.seg));
+    set("rMgmt", money(-r.mgmt));   set("rUtil", money(-r.util));
+    set("rOtros", money(-r.otros)); set("rGastos", money(-r.gastos));
+    set("rNoi", money(r.noi));      set("rDeuda", money(-r.deuda));
+    set("rCf", money(r.cf));
+
+    set("cEntrada", money(r.entrada));  set("cCierre", money(r.cierre));
+    set("cCredito", money(-r.credito)); set("cEfectivo", money(r.efectivo));
+    set("cBase", money(r.base));        set("cHip", money(r.hipoteca));
+    set("cCuota", money2(r.cuotaMes));  set("cVacio", money2(r.vacio));
+    set("cSoloOfi", money2(r.soloOfi));
+
+    set("mNoi", money(r.noi));
+    set("mDscr", r.dscr === Infinity ? "—" : ratio(r.dscr));
+    set("mCf", money(r.cf));
+    document.getElementById("mCf").style.color = r.cf < 0 ? "var(--neg)" : "var(--accent-ink)";
+    document.getElementById("mDscr").style.color = (isFinite(r.dscr) && r.dscr < 1) ? "var(--neg)" : "var(--ink)";
+
+    renderScenarios();
+    renderAprec(r);
+  }
+
+  /* ---------- unidades: fijas (PRESETS) + las guardadas en este navegador ---------- */
+  var STORE = "calculadora-precon-brickell.unidades";
+  var custom = readCustom();
+  var activeKey = null;
+
+  function readCustom(){
+    try {
+      var a = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(a) ? a.filter(function(u){ return u && u.id && u.n && u.v; }) : [];
+    } catch(e){ return []; }
+  }
+  function writeCustom(){
+    try { localStorage.setItem(STORE, JSON.stringify(custom)); return true; } catch(e){ return false; }
+  }
+  function allUnits(){
+    var a = Object.keys(LABELS).map(function(k){ return {key:k, label:LABELS[k], v:PRESETS[k], custom:false}; });
+    custom.forEach(function(u){ a.push({key:u.id, label:u.n, v:u.v, custom:true}); });
+    return a;
+  }
+  function getUnit(key){
+    if (key === "blank") return {key:"blank", label:"En blanco", v:PRESETS.blank, custom:false};
+    var a = allUnits();
+    for (var i=0; i<a.length; i++) if (a[i].key === key) return a[i];
+    return null;
+  }
+  function currentValues(){ var o = {}; FIELDS.forEach(function(f){ o[f] = num(f); }); return o; }
+  function say(msg){
+    var el = document.getElementById("saveMsg");
+    el.textContent = msg;
+    clearTimeout(say.t); say.t = setTimeout(function(){ el.textContent = ""; }, 6000);
+  }
+
+  function buildChips(){
+    var host = document.getElementById("chips");
+    host.innerHTML = "";
+    allUnits().concat([getUnit("blank")]).forEach(function(u){
+      var b = document.createElement("button");
+      b.className = "chip"; b.type = "button"; b.dataset.preset = u.key; b.textContent = u.label;
+      b.setAttribute("aria-pressed", String(u.key === activeKey));
+      b.addEventListener("click", function(){ loadPreset(u.key); });
+      if (!u.custom){ host.appendChild(b); return; }
+      var w = document.createElement("span"); w.className = "chipwrap";
+      var x = document.createElement("button");
+      x.className = "chipx"; x.type = "button"; x.textContent = "×";
+      x.setAttribute("aria-label", "Eliminar " + u.label);
+      x.addEventListener("click", function(){ removeUnit(u); });
+      w.appendChild(b); w.appendChild(x); host.appendChild(w);
+    });
+  }
+
+  function renderCompare(){
+    var body = document.getElementById("cmpBody");
+    body.innerHTML = "";
+    allUnits().forEach(function(u){
+      var r = compute(1, u.v);
+      var tr = document.createElement("tr");
+      if (u.key === activeKey) tr.className = "on";
+      function td(txt, bad){ return '<td'+(bad?' class="neg"':'')+'>'+txt+'</td>'; }
+      tr.innerHTML =
+        '<td><button class="cmpbtn" type="button">'+esc(u.label)+'</button></td>'+
+        td(money(r.precio))+
+        td(r.sqftRes > 0 ? money(r.precio/r.sqftRes) : "—")+
+        td(money(r.bruto))+ td(money(r.noi), r.noi < 0)+ td(pct(r.cap), r.cap < 0)+
+        td(money(r.cf), r.cf < 0)+ td(pct(r.coc), r.coc < 0)+
+        td(r.dscr === Infinity ? "sin deuda" : ratio(r.dscr), isFinite(r.dscr) && r.dscr < 1);
+      tr.querySelector(".cmpbtn").addEventListener("click", function(){
+        loadPreset(u.key);
+        window.scrollTo({top:0, behavior:"smooth"});
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  /* ---------- enlace: ?u=3604 abre una unidad fija; los campos editados viajan como parámetros ---------- */
+  function urlKey(key){ return key === "blank" ? "blank" : (LABELS[key] ? key.slice(1) : ""); }
+  function syncUrl(){
+    try {
+      var k = urlKey(activeKey);
+      history.replaceState(null, "", location.pathname + (k ? "?u=" + k : ""));
+    } catch(e){}
+  }
+  function shareUrl(){
+    var k = urlKey(activeKey), u = k ? getUnit(activeKey) : null;
+    var base = u ? u.v : PRESETS.blank, q = [];
+    if (k) q.push("u=" + k);
+    FIELDS.forEach(function(f){ var v = num(f); if (v !== base[f]) q.push(f + "=" + v); });
+    return location.href.split(/[?#]/)[0] + (q.length ? "?" + q.join("&") : "");
+  }
+  function initFromUrl(){
+    var q;
+    try { q = new URLSearchParams(location.search); } catch(e){ return false; }
+    var u = q.get("u");
+    var key = u === "blank" ? "blank" : (u && LABELS["u"+u] ? "u"+u : null);
+    var base = key ? getUnit(key).v : PRESETS.blank, vals = {}, touched = false;
+    FIELDS.forEach(function(f){
+      var v = parseFloat(q.get(f));
+      if (isFinite(v)) { vals[f] = v; touched = true; } else vals[f] = base[f];
+    });
+    if (!key && !touched) return false;
+    applyValues(vals, key);
+    return true;
+  }
+
+  function applyValues(p, key){
+    FIELDS.forEach(function(f){
+      var el = document.getElementById(f);
+      if (el) el.value = p[f] != null ? p[f] : PRESETS.blank[f];
+    });
+    scen = DEFAULT_SCEN.map(function(s){ return {n:s.n, p:s.p}; });
+    buildScenRows();
+    activeKey = key;
+    buildChips();
+    renderCompare();
+    render();
+  }
+  function loadPreset(key, keepUrl){
+    var u = getUnit(key); if(!u) return;
+    applyValues(u.v, key);
+    if (!keepUrl) syncUrl();
+  }
+
+  function saveUnit(){
+    var inp = document.getElementById("saveName"), name = inp.value.trim();
+    if (!name){ inp.focus(); say("Poné un nombre para guardarla, por ejemplo: 4112 · 1 dorm."); return; }
+    var hit = null;
+    custom.forEach(function(u){ if (u.n.toLowerCase() === name.toLowerCase()) hit = u; });
+    var updated = !!hit;
+    if (hit) hit.v = currentValues();
+    else { hit = {id:"c" + Date.now().toString(36), n:name, v:currentValues()}; custom.push(hit); }
+    var ok = writeCustom();
+    activeKey = hit.id; inp.value = "";
+    buildChips(); renderCompare(); syncUrl();
+    say(!ok ? "Quedó cargada, pero este navegador no deja guardarla: se pierde al cerrar la página."
+            : "«" + name + "» " + (updated ? "actualizada" : "guardada") + " en este navegador.");
+  }
+  function removeUnit(u){
+    if (!window.confirm("¿Eliminar la unidad «" + u.label + "»?")) return;
+    custom = custom.filter(function(c){ return c.id !== u.key; });
+    writeCustom();
+    if (activeKey === u.key) activeKey = null;
+    buildChips(); renderCompare();
+  }
+  document.getElementById("btnSave").addEventListener("click", saveUnit);
+  document.getElementById("saveName").addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ e.preventDefault(); saveUnit(); }
+  });
+
+  FIELDS.forEach(function(f){
+    var el = document.getElementById(f);
+    if (el) el.addEventListener("input", render);
+  });
+  document.getElementById("btnReset").addEventListener("click", function(){
+    loadPreset(getUnit(activeKey) ? activeKey : FIRST);
+  });
+
+  document.getElementById("btnLink").addEventListener("click", function(){
+    var btn = this, url = shareUrl();
+    function done(ok){
+      btn.textContent = ok ? "Enlace copiado" : "No se pudo copiar";
+      setTimeout(function(){ btn.textContent = "Copiar enlace"; }, 1800);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function(){ done(true); }, function(){ done(false); });
+    } else done(false);
+  });
+
+  document.getElementById("btnCopy").addEventListener("click", function(){
+    var f = factors();
+    var P = compute(f.pes), B = compute(f.base), O = compute(f.opt);
+    function col(s){ return [money(s.noi), pct(s.cap), money(s.cf), pct(s.coc), ratio(s.dscr)]; }
+    var p = col(P), b = col(B), o = col(O);
+    var L = [
+      "ANÁLISIS DE INVERSIÓN — One Twenty Brickell" + (getUnit(activeKey) && activeKey !== "blank" ? " · " + getUnit(activeKey).label : ""),
+      "Precio: " + money(B.precio),
+      "",
+      "CASO BASE",
+      "  Ingreso bruto: " + money(B.bruto) + "  (STR " + money(B.str) + " + oficina " + money(B.ofi) + ")",
+      "  Gastos operativos: " + money(-B.gastos),
+      "  NOI: " + b[0] + "   ·   Cap rate: " + b[1],
+      "  Servicio de deuda: " + money(-B.deuda),
+      "  Cash flow: " + b[2] + " /año (" + money(B.cf/12) + " /mes)",
+      "  DSCR: " + b[4] + (B.dscr >= 1 ? "  (califica)" : "  (NO califica)"),
+      "  Cash-on-cash: " + b[3] + "  sobre " + money(B.base),
+      "",
+      "LOS TRES ESCENARIOS DE INGRESOS   (−" + nf(num("scPes"),0) + " % / base / +" + nf(num("scOpt"),0) + " %)",
+      "  NOI:           " + p[0] + "  |  " + b[0] + "  |  " + o[0],
+      "  Cap rate:      " + p[1] + "  |  " + b[1] + "  |  " + o[1],
+      "  Cash flow:     " + p[2] + "  |  " + b[2] + "  |  " + o[2],
+      "  Cash-on-cash:  " + p[3] + "  |  " + b[3] + "  |  " + o[3],
+      "  DSCR:          " + p[4] + "  |  " + b[4] + "  |  " + o[4],
+      "",
+      "CAPITAL",
+      "  Entrada: " + money(B.entrada) + "   Hipoteca: " + money(B.hipoteca),
+      "  Cuota mensual: " + money2(B.cuotaMes),
+      "  Efectivo hasta la entrega: " + money(B.efectivo),
+      "",
+      "APRECIACIÓN — equity ganado sobre la entrada (sin contar venta)"
+    ];
+    scen.forEach(function(s){
+      var ganancia = B.precio * s.p/100;
+      var roi = B.entrada > 0 ? ganancia/B.entrada : NaN;
+      L.push("  " + s.n + " (" + nf(s.p,0) + " %): " + pct(roi,0) + "  =  " + money(ganancia));
+    });
+    var text = L.join("\n"), btn = this;
+    function done(ok){
+      btn.textContent = ok ? "Copiado" : "Seleccioná y copiá";
+      setTimeout(function(){ btn.textContent = "Copiar resumen"; }, 1800);
+    }
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.cssText = "position:fixed;left:8px;bottom:96px;width:calc(100% - 16px);height:200px;z-index:60";
+      document.body.appendChild(ta); ta.select(); done(false);
+      setTimeout(function(){ ta.remove(); }, 8000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, fallback);
+    } else fallback();
+  });
+
+  if (!initFromUrl()) loadPreset(FIRST, true);
+})();
+</script>
+</body>
+</html>
